@@ -1,4 +1,3 @@
-# <myQwordleEnv.py>
 import pandas as pd
 import numpy as np
 import gymnasium as gym
@@ -29,9 +28,7 @@ class WordleQEnv():
         self.row_present = [None]*self.word_len # yellows
         self.row_absent = [None]*self.word_len  # blacks
 
-        self.win = ''
-
-
+        self.won_game = ''
 
         # self.correct
 
@@ -72,14 +69,14 @@ class WordleQEnv():
         number_of_blacks = len([x for x in self.row_absent if x is not None])
 
         if self.target_word == word:
-            self.win = 'win'
+            self.won_game = 'yes'
             # print(f"YOU WON! In {self.attempts} moves")
             return number_of_greens, number_of_yellows, number_of_blacks
         
        
 
         if self.attempts == self.max_attempts:
-            self.win = 'lose'
+            self.won_game = 'no'
             self.attempts = 7
             # print("ATTEMPTS FINISHED!")
             return number_of_greens, number_of_yellows, number_of_blacks
@@ -127,18 +124,11 @@ class MyAgent():
     
 
     def smart_guess(self, green_positions, yellows, absent_letters):
-        """
-        Makes a smart guess using information about:
-        1. Letters in correct positions (green)
-        2. Letters present but in wrong positions (yellow)
-        3. Letters absent from the target word
-        
-        Returns a word that satisfies all constraints.
-        """
-        # Start with words that don't contain any absent letters
+
+        # remove words with absent letters
         candidates = [word for word in self.word_list if not any(letter in word for letter in absent_letters)]
         
-        # Filter for words that have the green letters in the correct positions
+        # get the words with green pos
         filtered = []
         for word in candidates:
             match = True
@@ -150,23 +140,21 @@ class MyAgent():
                 filtered.append(word)
         
         if not filtered:
-            # If no words match our criteria, fall back to random word without absent letters
             if candidates:
                 return random.choice(candidates)
             return self.randomly()
         
         candidates = filtered
         
-        # Further filter for words that contain all yellow letters
+        # now check for yellows
         if yellows:
             yellow_filtered = []
             for word in candidates:
                 if all(yellow in word for yellow in yellows):
-                    # Ensure yellow letters are not in the positions we know they shouldn't be
                     valid = True
                     for i, letter in enumerate(green_positions):
                         if letter is None and i < len(word) and word[i] in yellows:
-                            # This position had a yellow letter before, so we know it's wrong
+                            # this pos has a yellow letter so shouldnt be in our search space
                             valid = False
                             break
                     if valid:
@@ -175,85 +163,61 @@ class MyAgent():
             if yellow_filtered:
                 candidates = yellow_filtered
         
-        # If we have multiple candidates, prioritize words with unique letters to gain more information
         if len(candidates) > 1:
-            # Score words by number of unique letters
+
             word_scores = []
             for word in candidates:
-                # Skip words we've already guessed
+
                 if word in self.agent_guesses:
                     continue
                     
-                # Count unique letters
                 unique_letters = len(set(word))
-                # Prioritize words with most unique letters
-                word_scores.append((word, unique_letters))
             
-            # If all remaining words have been guessed, just pick one randomly
             if not word_scores:
                 return random.choice(candidates)
-                
-            # Sort by score (higher is better)
+            
+            # we want to prioritize words with unique letters so that search space is reduced more
             word_scores.sort(key=lambda x: x[1], reverse=True)
             
-            # Return the word with highest score
             return word_scores[0][0]
         
-        # Make sure we don't pick a word we've already guessed if possible
+
         candidates = [word for word in candidates if word not in self.agent_guesses]
         if not candidates:
-            # If all remaining words have been guessed, just pick one from the original filtered list
             candidates = filtered
         
         return random.choice(candidates)
 
     def letter_frequency_guess(self):
-        """
-        Makes a guess based on letter frequency in English when we don't have much information yet.
-        Focuses on common letters like E, A, R, I, O, T, N, S, L, C
-        """
-        # Common letters in English (in rough order of frequency)
-        common_letters = "eariotnslu"
+
+
+        common_letters = "etaoins"
         
-        # Score each word based on how many common letters it contains
         word_scores = []
         for word in self.word_list:
-            # Skip words we've already guessed
             if word in self.agent_guesses:
                 continue
                 
-            # Count unique common letters
             unique_letters = set(word)
             score = sum(1 for letter in unique_letters if letter in common_letters)
             
-            # Prioritize words with unique letters to get more information
             uniqueness_bonus = len(unique_letters)
             
             word_scores.append((word, score + 0.1 * uniqueness_bonus))
         
-        # If no valid words found, fall back to random selection
         if not word_scores:
             return self.randomly()
         
-        # Sort by score (higher is better)
         word_scores.sort(key=lambda x: x[1], reverse=True)
         
-        # Return the highest-scoring word
         return word_scores[0][0]
 
 
     def yellow_position_tracking(self, green_positions, yellows, absent_letters, yellow_positions):
-        """
-        Advanced strategy that also tracks where yellow letters have appeared
-        to refine guesses further.
-        
-        yellow_positions: Dictionary mapping letters to lists of positions where 
-                        they've appeared as yellow (meaning they cannot be in those positions)
-        """
-        # Start with basic filtering like in smart_guess
+        # this additionally uses information about the positions of yellows. This has a stricter, correct interpretation of yellow feedback
+
         candidates = [word for word in self.word_list if not any(letter in word for letter in absent_letters)]
         
-        # Filter for green positions
         filtered = []
         for word in candidates:
             match = True
@@ -271,15 +235,15 @@ class MyAgent():
         
         candidates = filtered
         
-        # Filter for yellow letters with position constraints
+
         if yellows:
             yellow_filtered = []
             for word in candidates:
-                # Check if word contains all yellow letters
+
                 if all(yellow in word for yellow in yellows):
                     valid = True
                     
-                    # Check that yellow letters aren't in positions where they've appeared before
+                    # check that yellows aren't in locations where we've already guessed that letter
                     for letter, positions in yellow_positions.items():
                         for pos in positions:
                             if pos < len(word) and word[pos] == letter:
@@ -294,13 +258,10 @@ class MyAgent():
             if yellow_filtered:
                 candidates = yellow_filtered
         
-        # Prioritize new words and words with unique letters
         if len(candidates) > 1:
             word_scores = []
             for word in candidates:
-                # Lower score for words we've already guessed
                 novelty = 0 if word in self.agent_guesses else 2
-                # Count unique letters
                 unique_letters = len(set(word))
                 
                 word_scores.append((word, unique_letters + novelty))
@@ -310,22 +271,17 @@ class MyAgent():
             if word_scores:
                 return word_scores[0][0]
         
-        # Make sure we don't pick a word we've already guessed if possible
         candidates = [word for word in candidates if word not in self.agent_guesses]
         if not candidates:
             candidates = filtered
         
         return random.choice(candidates)
-        
-    
-
-        
-    
+         
 
 
 class WordleMetaEnv():
     def __init__(self):
-        self.win_reward = 10
+        self.won_game_reward = 10
         self.lose_cost = -10
         self.green_reward = 5
         self.yellow_reward = 3
@@ -339,7 +295,7 @@ class WordleMetaEnv():
         self.env = WordleQEnv()
         self.guesses_made = 0
 
-        return (0,0,0)  # corresponding to greens and yellows
+        return (0,0,0)  # corresponding to greens and yellows and blacks
     
     def step(self, action):
         self.guesses_made += 1
@@ -359,30 +315,16 @@ class WordleMetaEnv():
         
         greens, yellows, blacks = self.env.make_guess(guess)
         reward = 0
-        reward = self.green_reward * greens + self.yellow_reward * yellows - self.black_cost * blacks
+        reward = self.green_reward * greens + self.yellow_reward * yellows + self.black_cost * blacks
 
         state = (greens, yellows, blacks)
         
         
-        if self.env.win == 'win':
-            reward += self.win_reward
+        if self.env.won_game == 'yes':
+            reward += self.won_game_reward
             return state, reward, True
-        elif self.env.win == 'lose':
-            reward -= self.lose_cost
+        elif self.env.won_game == 'no':
+            reward += self.lose_cost
             return state, reward, True
 
         return state, reward, False
-
-
-
-env = WordleQEnv()
-print(f"Target Word: {env.target_word}")
-env.make_guess("chase")
-
-
-agent = MyAgent()
-print(agent.rand_green_not_absent([None, None,None, None, 's'], []))
-
-
-
-# </myQwordleEnv.py>
