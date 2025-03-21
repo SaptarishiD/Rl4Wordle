@@ -40,10 +40,7 @@ class WordleQEnv():
         # if word == self.target_word:
             # print("\n ============= You Won =========== \n")
 
-
-
-
-        self.row_correct = [None]*self.word_len
+        self.row_correct = [None]*self.word_len 
         self.row_present = [None]*self.word_len # yellows
         self.row_absent = [None]*self.word_len  # blacks
 
@@ -58,9 +55,10 @@ class WordleQEnv():
                 self.pos_guessed_correctly[i] = target_letter
 
             # yellow
-            elif guessed_letter in word and guessed_letter != target_letter:
+            elif guessed_letter in self.target_word and guessed_letter != target_letter:
                 self.row_present[i] = guessed_letter
-                self.pos_yellow[guessed_letter].append(i) # this is a dict where vals are list
+                if i not in self.pos_yellow[guessed_letter]:
+                    self.pos_yellow[guessed_letter].append(i) # this is a dict where vals are list
                 if guessed_letter not in self.letters_present:
                     self.letters_present.append(guessed_letter)
             
