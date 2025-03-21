@@ -67,7 +67,7 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
         letter_dim = num_letters * word_length
         self.letter_net = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(letter_dim, 64),
+            nn.Linear(letter_dim + 1, 64),
             nn.ReLU(),
             nn.Linear(64, 128),
             nn.ReLU(),
@@ -79,7 +79,7 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
         self.missing_letters = None
         self.greens = None
         self.batch_size = None
-        
+        self.attempt = None
         # Default word length
         self.word_length = word_length
         self.num_letters = num_letters
@@ -90,7 +90,8 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
         self.last_state = torch.zeros(batch_size, self.word_length, self.num_letters)
         self.missing_letters = [[[] for _ in range(self.word_length)] for _ in range(batch_size)]
         self.greens = [{} for _ in range(batch_size)]
-    
+        self.attempt = None
+
     def forward(self, observations):
         # Initialize if not already done or if batch size changed
         if self.last_state is None or self.batch_size != observations['board'].shape[0]:
@@ -98,7 +99,6 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
         
         # Create tensor to hold all features for the batch
         batch_features = []
-        
         for b in range(self.batch_size):
             # Get current state for this batch item
             state = self.last_state[b].detach().clone()
@@ -229,7 +229,7 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
             
             # Flatten and add to batch features
             flattened = state.flatten()
-            batch_features.append(flattened)
+            batch_features.append(torch.cat((flattened, attempt_idx/5)))
         
         # Stack all batch features and process through the neural network
         batch_tensor = torch.stack(batch_features)
