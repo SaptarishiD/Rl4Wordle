@@ -10,8 +10,6 @@ from ppo_agents import WordleFeatureExtractor, WordleFeatureExtractor_Markov
 from trainer import WordleTrainingCallback
 from heuristics import HeuristicWordleAgent
 from utils import convert_feedback_to_wordle_format
-from q_agents import QLearningAgent
-from trainer import WordleTrainer
 from datetime import datetime
 
 def make_env(word_list_path, rank=0):
