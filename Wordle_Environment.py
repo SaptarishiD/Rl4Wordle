@@ -8,8 +8,9 @@ Outline of environment:
         A: Input Words
         S: State of the Wordle Grid with greens and yellows and guessed words
         R: We can have two different formulations:
-            +1, -1 at the end
-            +2 for green, +1 for yellow, -1 for black
+           +1, -1 at the end or some other form of non-intermediate rewards
+            +2 for green, +1 for yellow, -1 for black or some other form of intermediate rewards
+        P: Deterministic
         P: ?
 
 Outline of agent:
