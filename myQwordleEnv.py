@@ -102,6 +102,8 @@ class MyAgent():
 
     def rand_not_absent(self, absent_letters):
         new_search_space = [word for word in self.word_list if not any(letter in word for letter in absent_letters)]
+        if len(new_search_space) < 1:
+            return self.randomly()
         rand_word = random.choice(new_search_space)
         while (rand_word in self.agent_guesses):
             rand_word = random.choice(new_search_space)
@@ -120,6 +122,11 @@ class MyAgent():
                 filtered.append(word)
         # print(filtered)
         # print(len(filtered))
+        if self.debug:
+            print("Filtered list in rand green not absent")
+            print(len(filtered))
+        if len(filtered) < 1:
+            return self.rand_not_absent(absent_letters)
         return random.choice(filtered)
     
 
@@ -280,19 +287,22 @@ class MyAgent():
 
 
 class WordleMetaEnv():
-    def __init__(self):
+    def __init__(self, debug=False, word_list_path='target_words.txt'):
         self.won_game_reward = 10
         self.lose_cost = -10
         self.green_reward = 5
         self.yellow_reward = 3
         self.black_cost = -1
+        self.debug = debug
 
         self.total_reward = 0
         self.action_space = [0,1,2,3,4,5]
+
+        self.word_path = word_list_path
     
     def reset(self):
-        self.agent = MyAgent()
-        self.env = WordleQEnv()
+        self.agent = MyAgent(debug=self.debug, word_list_path=self.word_path)
+        self.env = WordleQEnv(word_list_path=self.word_path)
         self.guesses_made = 0
 
         return (0,0,0)  # corresponding to greens and yellows and blacks
