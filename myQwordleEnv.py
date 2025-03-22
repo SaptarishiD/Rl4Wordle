@@ -8,7 +8,7 @@ from collections import defaultdict
 
 
 class WordleQEnv():
-    def __init__(self, word_list_path='target_words.txt'):
+    def __init__(self, debug=False, word_list_path='target_words.txt'):
         with open(word_list_path, 'r') as f:
             self.word_list = f.read().splitlines()
         self.attempts = 0
@@ -30,7 +30,6 @@ class WordleQEnv():
 
         self.won_game = ''
 
-        # self.correct
 
     def make_guess(self, word):
         self.attempts += 1
@@ -88,9 +87,10 @@ class WordleQEnv():
 
 
 class MyAgent():
-    def __init__(self, word_list_path='target_words.txt'):
+    def __init__(self, debug=False, word_list_path='target_words.txt'):
         self.agent_guesses = []
         self.agent_attempts = 0
+        self.debug = debug
         with open(word_list_path, 'r') as f:
             self.word_list = f.read().splitlines()
         
@@ -302,7 +302,7 @@ class WordleMetaEnv():
     
     def reset(self):
         self.agent = MyAgent(debug=self.debug, word_list_path=self.word_path)
-        self.env = WordleQEnv(word_list_path=self.word_path)
+        self.env = WordleQEnv(debug=self.debug, word_list_path=self.word_path)
         self.guesses_made = 0
 
         return (0,0,0)  # corresponding to greens and yellows and blacks
