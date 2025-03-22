@@ -10,27 +10,28 @@
 - Q_table_intermediate.pkl: A Q table saved from the Q learning algorithm on the heuristic agent
 
 
-- meta_ppo.py : PPO on the heuristic wordle agent
+- meta_dqn.py : DQN on the heuristic wordle agent
 
 
-- meta_ppo.ipynb : Evaluation of the heuristic PPO
+- meta_dqn.ipynb : Evaluation of the heuristic DQN
 
 
-- meta_ppo_wordle.zip : Saved heuristic PPO model
+- meta_dqn_wordle.zip : Saved heuristic DQN model
 
 - results_meta_learn: Results for the heuristic/meta learning setup
 
 - target_words.txt: Wordle Word Answers Dataset
 
+- words.txt: Wordle Valid Words Dataset
+
+
 -  ⁠environments.py and ⁠Wordle_Environment.py: From-scratch environment
 
 -  ⁠ppo_agents.py: Neural networks for PPO on the from-scratch environment
 
--  ⁠eval_ppo.ipynb: PPO evaluation notebook
+-  ⁠eval_ppo.ipynb: PPO evaluation notebook for from-scratch environment
 
--  ⁠run.py: PPO evaluation script
-
--  ⁠heuristics.py: Heuristic Agent
+-  ⁠run.py: PPO evaluation script for from-scratch env
 
 -  ⁠simple_dqn.ipynb: Q Learning on from-scratch Notebook
 
