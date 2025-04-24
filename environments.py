@@ -250,6 +250,8 @@ class WordleEnvMarkov(gym.Env):
         self.render_mode = render_mode
 
         if reward_params is None:
+            # these values obtained from some hyperparameter optimization through optuna
+            
             reward_params = {'win_bonus': 101.53539925680269, 
                              'attempt_bonus': 1.1337170993046657, 
                              'correct_reward': 105.31846089080993, 

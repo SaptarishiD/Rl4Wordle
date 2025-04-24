@@ -1,0 +1,3 @@
+Success Rate: 97.92%
+Average Guesses: 3.92
+Average Guesses (Successful games): 3.88

@@ -67,7 +67,7 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
         letter_dim = num_letters * word_length
         self.letter_net = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(letter_dim + 1, 64),
+            nn.Linear(letter_dim, 64),
             nn.ReLU(),
             nn.Linear(64, 128),
             nn.ReLU(),
@@ -229,8 +229,8 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
             
             # Flatten and add to batch features
             flattened = state.flatten()
-            batch_features.append(flattened)
             # batch_features.append(torch.cat((flattened, attempt_idx/5)))
+            batch_features.append(flattened)
         
         # Stack all batch features and process through the neural network
         batch_tensor = torch.stack(batch_features)
