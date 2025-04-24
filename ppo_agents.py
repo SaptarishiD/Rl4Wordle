@@ -229,7 +229,8 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
             
             # Flatten and add to batch features
             flattened = state.flatten()
-            batch_features.append(torch.cat((flattened, attempt_idx/5)))
+            batch_features.append(flattened)
+            # batch_features.append(torch.cat((flattened, attempt_idx/5)))
         
         # Stack all batch features and process through the neural network
         batch_tensor = torch.stack(batch_features)
