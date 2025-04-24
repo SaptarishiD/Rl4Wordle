@@ -5,7 +5,7 @@ import time
 from myQwordleEnv import WordleMetaEnv, WordleQEnv, MyAgent
 
 class InteractiveWordleDemo:
-    def __init__(self, q_table_path='Q_table_no_intermediate_targets.pkl', word_list_path='target_words.txt'):
+    def __init__(self, q_table_path='Q_table_intermediate_final.pkl', word_list_path='target_words.txt'):
         # Load the Q-table
         with open(q_table_path, 'rb') as f:
             self.Q = pickle.load(f)
@@ -185,7 +185,7 @@ def main():
         # print("5. Reveal target word")
         # print("6. Exit")
         
-        choice = input("\nEnter your choice (1-6): ")
+        choice = input("\nEnter your choice (1-3): ")
         
         if choice == '1':
             demo.reset()

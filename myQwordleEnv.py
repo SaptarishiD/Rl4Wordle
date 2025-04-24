@@ -1,3 +1,4 @@
+# <myQwordleEnv.py> is a custom environment for the game Wordle. It is a modified version of the original Wordle game.
 import pandas as pd
 import numpy as np
 import gymnasium as gym
@@ -299,6 +300,8 @@ class WordleMetaEnv():
         self.action_space = [0,1,2,3,4,5]
 
         self.word_path = word_list_path
+        self.agent = MyAgent(debug=self.debug, word_list_path=self.word_path)
+        self.env = WordleQEnv(debug=self.debug, word_list_path=self.word_path)
     
     def reset(self):
         self.agent = MyAgent(debug=self.debug, word_list_path=self.word_path)
@@ -338,3 +341,4 @@ class WordleMetaEnv():
             return state, reward, True
 
         return state, reward, False
+# </myQwordleEnv.py>

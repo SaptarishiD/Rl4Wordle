@@ -38,3 +38,18 @@
 -  ⁠trainer.py: Training class including custom callback for from-scratch method
 
 -  ⁠utils.py : Utilities for plotting etc.
+
+
+TODO
+
+Multi-wordle 
+
+Experience Replay
+
+More heuristics
+
+MCTS
+
+
+
+
