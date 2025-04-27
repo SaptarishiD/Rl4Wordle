@@ -252,7 +252,7 @@ class WordleEnvMarkov(gym.Env):
         if reward_params is None:
             # these values obtained from some hyperparameter optimization through optuna
             
-            reward_params = {'win_bonus': 101.53539925680269, 
+            reward_params = {'win_bonus': 1000, 
                              'attempt_bonus': 1.1337170993046657, 
                              'correct_reward': 105.31846089080993, 
                              'present_reward': 12.107504784037516, 
@@ -287,7 +287,8 @@ class WordleEnvMarkov(gym.Env):
             print(f"Warning: {word_list_path} not found. Using a small sample of words.")
             self.valid_words = ['apple', 'baker', 'child', 'dance', 'early', 
                                 'first', 'grand', 'house', 'input', 'jolly']
-        
+        self.word_to_index = {x: idx for idx, x in enumerate(self.valid_words)}
+        self.index_to_word = {idx: x for idx, x in enumerate(self.valid_words)}
         if not self.valid_words:
             raise ValueError("No valid words found!")
     
