@@ -236,22 +236,6 @@ def mcts_possible_words(initial_possible_words, valid_actions_map, iterations, e
                 # Update the statistics for the action taken from the parent.
                 parent_node.update_action_stats(action_taken_from_parent, value_to_propagate)
 
-                # --- Create Child Node if Expansion Occurred ---
-                # If node_to_update was newly reached via a specific feedback, link it.
-                # We need the feedback that led to node_to_update.
-                # This feedback was generated during the selection/simulation phase *for this iteration*.
-
-                # This linking is complex because the 'true' child depends on the sampled word.
-                # A pragmatic approach: If node_to_update was the simulation_start_node
-                # and resulted from an expansion (untried action), we don't necessarily
-                # create a permanent child link here, as the feedback varies.
-                # Alternatively, if selection descended into an existing child based on sampled feedback,
-                # that link is already correct.
-
-                # Let's focus on updating stats, child links can be implicitly managed or added if needed.
-                # If node_to_update *is* the direct result of parent + action + specific feedback (that we'd need to track),
-                # then: parent_node.children[action_taken_from_parent][feedback_leading_to_node] = node_to_update
-
             # Move up the tree.
             node_to_update = node_to_update.parent
 
@@ -299,11 +283,11 @@ if __name__ == "__main__":
     start_time = time.time()
 
     while not terminated:
-        # env.render()
-        # print(f"Attempt {env.current_attempt + 1}/{MAX_ATTEMPTS}")
-        # print(f"Possible words remaining: {len(current_possible_words)}")
-        # if len(current_possible_words) < 15:
-        #     print(f"({', '.join(sorted(current_possible_words))})")
+        env.render()
+        print(f"Attempt {env.current_attempt + 1}/{MAX_ATTEMPTS}")
+        print(f"Possible words remaining: {len(current_possible_words)}")
+        if len(current_possible_words) < 15:
+            print(f"({', '.join(sorted(current_possible_words))})")
 
         if not current_possible_words:
                 print("Error: No possible words left, but game not terminated?")
@@ -320,7 +304,7 @@ if __name__ == "__main__":
             current_attempt=env.current_attempt 
         )
         suggested_word = env.index_to_word.get(action, 'INVALID ACTION')
-        # print(f"MCTS Suggests: {suggested_word} (Index: {action})")
+        print(f"MCTS Suggests: {suggested_word} (Index: {action})")
 
         if action == -1 or suggested_word == 'INVALID ACTION':
                 # print("Error: MCTS returned invalid action. Stopping.")
@@ -336,20 +320,20 @@ if __name__ == "__main__":
                 feedback_tuple = tuple(feedback)
                 current_possible_words = filter_words(current_possible_words, guessed_word, feedback_tuple)
             else:
-                    pass
-                    # print("Warning: Environment info missing 'guessed_word' or 'feedback'. Cannot filter words.")
+                pass
+                # print("Warning: Environment info missing 'guessed_word' or 'feedback'. Cannot filter words.")
 
-        # print(f"Feedback Received: {feedback}")
-        # print(f"Reward this step: {reward:.2f}, Total Reward: {total_reward:.2f}")
-        # print("-" * 20)
+        print(f"Feedback Received: {feedback}")
+        print(f"Reward this step: {reward:.2f}, Total Reward: {total_reward:.2f}")
+        print("-" * 20)
 
-    # env.render()
+    env.render()
     end_time = time.time()
-    # print(f"\n--- Game Over ---")
-    # print(f"Result: {'Success!' if env.won else 'Failure.'}")
-    # print(f"Target Word was: {env.target_word}")
-    # print(f"Attempts Used: {env.current_attempt}")
-    # print(f"Total Reward: {total_reward:.2f}")
+    print(f"\n--- Game Over ---")
+    print(f"Result: {'Success!' if env.won else 'Failure.'}")
+    print(f"Target Word was: {env.target_word}")
+    print(f"Attempts Used: {env.current_attempt}")
+    print(f"Total Reward: {total_reward:.2f}")
     if not env.won and current_possible_words:
             print(f"Remaining possible words ({len(current_possible_words)}): {', '.join(sorted(current_possible_words)[:10])}{'...' if len(current_possible_words) > 10 else ''}")
     elif not env.won:

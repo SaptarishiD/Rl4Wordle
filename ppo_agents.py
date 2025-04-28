@@ -237,3 +237,4 @@ class WordleFeatureExtractor_Markov(BaseFeaturesExtractor):
         features = self.letter_net(batch_tensor)
         
         return features
+    
