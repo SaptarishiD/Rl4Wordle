@@ -695,7 +695,7 @@ def plot_multi_game_statistics(stats, window_size=500):
 # Main execution
 if __name__ == "__main__":
     # Train the Q-learning agent
-    Q, training_stats = train_and_evaluate_multi(num_episodes=10000, epsilon=0.1, alpha=0.05, gamma=0.5)
+    Q, training_stats = train_and_evaluate_multi(num_episodes=50000, epsilon=0.1, alpha=0.05, gamma=0.5)
     
     # Plot the training statistics
     plot_multi_game_statistics(training_stats)
