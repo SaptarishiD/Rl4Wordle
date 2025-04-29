@@ -36,45 +36,87 @@ class MCTSNodeBase:
 
 
 class MCTSNodeVanilla(MCTSNodeBase):
-    """Node for the original MCTS with random rollout."""
+    """Node for vanilla MCTS using possible word sets and random rollouts."""
     def __init__(self, *args, **kwargs):
+        """
+        Initializes the vanilla MCTS node.
+        Derives possible actions and untried actions based on the current state.
+        """
         super().__init__(*args, **kwargs)
-        self.untried_actions = list(self.possible_actions)
-        random.shuffle(self.untried_actions)
 
+        current_possible_action_indices = []
+        for word in self.state:
+            idx = self.word_to_index.get(word)
+            if idx is not None:
+                current_possible_action_indices.append(idx)
+            
+        self.possible_actions = list(set(current_possible_action_indices))
+
+        self.untried_actions = list(self.possible_actions)
+        random.shuffle(self.untried_actions) 
+
+    def get_current_valid_action_indices(self):
+        """Helper to get action indices valid for the *current* state."""
+        return set(self.possible_actions) 
 
     def is_fully_expanded(self):
-        """Consider fully expanded if all possible actions from this state have been tried at least once."""
-        return len(self.action_stats) == len(self.possible_actions)
+        """Checks if all actions possible from this state have been tried at least once."""
+        return not self.untried_actions
 
     def select_action_uct(self, exploration_constant):
-        """Selects an action using UCT (Upper Confidence Bound for Trees)."""
+        """
+        Selects the best action from this node using the UCT formula.
+        Considers only actions that are currently possible based on the node's state.
+        """
         best_score = -float('inf')
-        best_actions = [] # Handle ties
+        best_actions = []
 
-        for action_idx, stats in self.action_stats.items():
+        current_valid_indices = self.get_current_valid_action_indices()
+
+        tried_valid_actions = []
+        for action_idx in self.action_stats.keys():
+            if action_idx in current_valid_indices:
+                tried_valid_actions.append(action_idx)
+
+        if not tried_valid_actions and not self.untried_actions:
+            return -1
+
+
+        for action_idx in tried_valid_actions:
+            stats = self.action_stats[action_idx]
+
             if stats['visits'] == 0:
-                pass # Handled below if untried exist
-            else:
-                if self.visit_count == 0: # Avoid division by zero if root not visited yet
-                    score = stats['value'] / stats['visits'] # Simple average if root not visited
+                if self.visit_count == 0:
+                    score = 0 
                 else:
-                    exploit_term = stats['value'] / stats['visits']
-                    explore_term = exploration_constant * math.sqrt(math.log(self.visit_count) / stats['visits'])
-                    score = exploit_term + explore_term
+                    score = float('inf')
+            else:
+                exploit_term = stats['value'] / stats['visits']
+                if self.visit_count == 0:
+                     explore_term = exploration_constant
+                else:
+                     explore_term = exploration_constant * math.sqrt(math.log(self.visit_count) / stats['visits'])
 
-                if score > best_score:
-                    best_score = score
-                    best_actions = [action_idx]
-                elif score == best_score:
-                    best_actions.append(action_idx)
+                score = exploit_term + explore_term
 
-        untried_action_indices = [idx for idx in self.possible_actions if idx not in self.action_stats]
+            if score > best_score:
+                best_score = score
+                best_actions = [action_idx]
+            elif score == best_score:
+                best_actions.append(action_idx)
 
-        if untried_action_indices:
-            return random.choice(untried_action_indices)
+        valid_untried_actions = [action for action in self.untried_actions if action in current_valid_indices]
+
+        if valid_untried_actions:
+            return random.choice(valid_untried_actions)
         elif best_actions:
             return random.choice(best_actions)
+        else:
+            print(f"Warning: No valid action selected by UCT at attempt {self.attempt}. State: {self.state}")
+            if current_valid_indices:
+                return random.choice(list(current_valid_indices))
+            else:
+                return -1
 
 
 class MCTSNodeAlphaZero(MCTSNodeBase):
