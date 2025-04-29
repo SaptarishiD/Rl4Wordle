@@ -696,6 +696,10 @@ def plot_multi_game_statistics(stats, window_size=500):
 if __name__ == "__main__":
     # Train the Q-learning agent
     Q, training_stats = train_and_evaluate_multi(num_episodes=50000, epsilon=0.1, alpha=0.05, gamma=0.5)
+
+    import pickle
+    with open('Q_table_multi_wordle_good.pkl', 'wb') as f:
+        pickle.dump(dict(Q), f)
     
     # Plot the training statistics
     plot_multi_game_statistics(training_stats)
