@@ -4,13 +4,16 @@ from alphazero_network import AlphaZeroVPNet, ABSENT, PRESENT, CORRECT
 from environments import WordleEnvMarkov
 from collections import defaultdict, deque
 import time
-import os
 from typing import List, Tuple, Dict 
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+
+from torch.utils.tensorboard import SummaryWriter
+from datetime import datetime
+writer = SummaryWriter(f'logs/{datetime.now().strftime()}')
 
 def compute_next_feature_state(
     last_feature_tensor, # (word_length, num_letters)
@@ -434,7 +437,7 @@ def train_alphazero(
     word_length=5,
     num_letters=26, 
     word_list_path='target_words.txt', 
-    model_save_path='alphazero_wordle_model_feat.pth',
+    model_save_path='alphazero_wordle_model_feat.pt',
     start_from_checkpoint=False
 ):
     print("\n--- AlphaZero Training Setup (Feature Tensor)")
@@ -591,7 +594,7 @@ def train_alphazero(
 
         win_rates.append(game_won)
         if game_won:
-             attempts_on_wins.append(attempts_made)
+            attempts_on_wins.append(attempts_made)
 
         num_exp = len(game_experiences)
         for state_tensor_flat, policy_target in game_experiences:
@@ -624,14 +627,20 @@ def train_alphazero(
                 total_loss.backward()
                 # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 optimizer.step()
-
+                current_total_step = total_steps + train_step
                 train_loss_total += total_loss.item()
                 policy_loss_total += policy_loss.item()
                 value_loss_total += value_loss.item()
+                writer.add_scalar('Loss/Total_Step', total_loss.item(), current_total_step)
+                writer.add_scalar('Loss/Policy_Step', policy_loss.item(), current_total_step)
+                writer.add_scalar('Loss/Value_Step', value_loss.item(), current_total_step)
 
             avg_train_loss = train_loss_total / train_steps_per_game
             avg_policy_loss = policy_loss_total / train_steps_per_game
             avg_value_loss = value_loss_total / train_steps_per_game
+            writer.add_scalar('Loss/Total_Avg_Per_TrainPhase', avg_train_loss, game_i + 1)
+            writer.add_scalar('Loss/Policy_Avg_Per_TrainPhase', avg_policy_loss, game_i + 1)
+            writer.add_scalar('Loss/Value_Avg_Per_TrainPhase', avg_value_loss, game_i + 1)
             # print(f"Training Step Avg Loss = {avg_train_loss:.4f} (Policy: {avg_policy_loss:.4f}, Value: {avg_value_loss:.4f})")
             total_steps += train_steps_per_game
         else:
@@ -657,6 +666,10 @@ def train_alphazero(
             # Log Training Stats
             current_win_rate = sum(win_rates) / len(win_rates) * 100 if len(win_rates) > 0 else 0
             current_avg_attempts = sum(attempts_on_wins) / len(attempts_on_wins) if len(attempts_on_wins) > 0 else 0
+            writer.add_scalar('WinRate/Overall_100Games', current_win_rate, game_i + 1)
+            if current_avg_attempts > 0:
+                 writer.add_scalar('Performance/Avg_Attempts_On_Wins_100Games', current_avg_attempts, game_i + 1)
+            writer.add_scalar('Progress/Total_Training_Steps', total_steps, game_i + 1) # Log total steps vs game number too
             print(f"\n--- Training Stats (Last {len(win_rates)} games)")
             print(f"Win Rate: {current_win_rate:.2f}%")
             if current_avg_attempts > 0:
@@ -664,7 +677,9 @@ def train_alphazero(
             print(f"Total Training Steps: {total_steps}")
             print(f"ERB Size: {len(erb)}")
             print("-" * 30)
-
+    import pickle
+    with open('win_distribution.pkl', 'wb') as f:
+        pickle.dump(attempts_on_wins, f)
     env.close()
     print("\n--- AlphaZero Training Completed")
 
@@ -683,6 +698,6 @@ if __name__ == "__main__":
         word_length=5, 
         num_letters=26, 
         word_list_path='target_words.txt', 
-        model_save_path='alphazero_wordle_model_feat.pth', 
+        model_save_path='alphazero_wordle_model_feat.pt', 
         start_from_checkpoint=False 
     )
