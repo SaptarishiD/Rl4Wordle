@@ -13,7 +13,7 @@ import numpy as np
 
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
-writer = SummaryWriter(f'logs/{datetime.now().strftime()}')
+writer = SummaryWriter(f'logs/alphazero/{datetime.now().strftime("x")}')
 
 def compute_next_feature_state(
     last_feature_tensor, # (word_length, num_letters)
@@ -677,9 +677,6 @@ def train_alphazero(
             print(f"Total Training Steps: {total_steps}")
             print(f"ERB Size: {len(erb)}")
             print("-" * 30)
-    import pickle
-    with open('win_distribution.pkl', 'wb') as f:
-        pickle.dump(attempts_on_wins, f)
     env.close()
     print("\n--- AlphaZero Training Completed")
 

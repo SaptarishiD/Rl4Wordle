@@ -1,7 +1,4 @@
-import math
 import random
-import numpy as np
-import os
 from environments import WordleEnvMarkov
 from collections import defaultdict
 import time
@@ -120,7 +117,7 @@ def mcts(initial_possible_words, valid_actions_map, iterations, exploration_cons
                 child_node = node.children.get(action_selected, {}).get(simulated_feedback)
 
                 if child_node is None:
-                    print(f"Warning: Child node not found for action {action_selected} and feedback {simulated_feedback} in supposedly fully expanded node. Attempt: {node.attempt}")
+                    # print(f"Warning: Child node not found for action {action_selected} and feedback {simulated_feedback} in supposedly fully expanded node. Attempt: {node.attempt}")
                     simulation_start_node = node
                     break
                 else:
@@ -205,11 +202,11 @@ def mcts(initial_possible_words, valid_actions_map, iterations, exploration_cons
     max_visits = -1
 
     if not root_node.action_stats:
-        print("Warning: MCTS root has no action stats after iterations. Choosing random action.")
+        # print("Warning: MCTS root has no action stats after iterations. Choosing random action.")
         if root_node.possible_actions:
             best_action = random.choice(root_node.possible_actions)
         else:
-            print("Error: No possible actions at root.")
+            # print("Error: No possible actions at root.")
             return -1 # Indicate error
         return best_action
 
@@ -219,14 +216,14 @@ def mcts(initial_possible_words, valid_actions_map, iterations, exploration_cons
             best_action = action_idx
 
     if best_action == -1:
-        print("Warning: No action found with visits > 0. Choosing random explored action or any possible action.")
+        # print("Warning: No action found with visits > 0. Choosing random explored action or any possible action.")
         explored_actions = list(root_node.action_stats.keys())
         if explored_actions:
             best_action = random.choice(explored_actions)
         elif root_node.possible_actions:
             best_action = random.choice(root_node.possible_actions)
         else:
-            print("Error: No possible actions at root and no explored actions.")
+            # print("Error: No possible actions at root and no explored actions.")
             return -1
 
     return best_action

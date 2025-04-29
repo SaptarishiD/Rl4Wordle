@@ -4,12 +4,13 @@ import random
 import time
 import os
 from typing import List, Dict
-
+import matplotlib.pyplot as plt
 from environments import WordleEnvMarkov
 from alphazero_network import AlphaZeroVPNet
 from mcts_nodes import MCTSNodeAlphaZero
 from mcts import mcts, get_feedback, filter_words
 from train_alphazero import compute_next_feature_state
+import pickle
 
 ABSENT = 0
 MAX_ATTEMPTS = 6 
@@ -319,7 +320,7 @@ def play_game_mcts(env, mcts_iterations, exploration_constant):
             if attempt_idx >= 0:
                 feedback = tuple(map(int, obs['board'][attempt_idx]))
             else:
-                print("Warning: Could not extract feedback from observation, calculating manually.")
+                # print("Warning: Could not extract feedback from observation, calculating manually.")
                 feedback = get_feedback(guessed_word, target_word)
 
             current_possible_words = filter_words(current_possible_words, guessed_word, feedback)
@@ -366,16 +367,16 @@ if __name__ == "__main__":
     az_game_times = []
     az_win_attempts = []
 
-    for i in range(NUM_BENCHMARK_GAMES):
-        # print(f"  Playing AZ Game {i+1}/{NUM_BENCHMARK_GAMES}...")
-        won, attempts, duration = play_game_alphazero_feature(model, env, MCTS_ITERATIONS, EXPLORATION_CONSTANT, device)
-        az_total_time += duration
-        az_game_times.append(duration)
-        if won:
-            az_wins += 1
-            az_total_attempts_on_win += attempts
-            az_win_attempts.append(attempts)
-        print(f"  Result: {'Win' if won else 'Loss'} in {attempts} attempts ({duration:.2f}s)")
+    # for i in range(NUM_BENCHMARK_GAMES):
+    #     # print(f"  Playing AZ Game {i+1}/{NUM_BENCHMARK_GAMES}...")
+    #     won, attempts, duration = play_game_alphazero_feature(model, env, MCTS_ITERATIONS, EXPLORATION_CONSTANT, device)
+    #     az_total_time += duration
+    #     az_game_times.append(duration)
+    #     if won:
+    #         az_wins += 1
+    #         az_total_attempts_on_win += attempts
+    #         az_win_attempts.append(attempts)
+    #     print(f"  Result: {'Win' if won else 'Loss'} in {attempts} attempts ({duration:.2f}s)")
 
     print("\n--- Benchmarking Vanilla MCTS (Possible Words)")
     vanilla_wins = 0
@@ -385,7 +386,7 @@ if __name__ == "__main__":
     vanilla_win_attempts = []
 
     for i in range(NUM_BENCHMARK_GAMES):
-        print(f"  Playing Vanilla MCTS Game {i+1}/{NUM_BENCHMARK_GAMES}...")
+        # print(f"  Playing Vanilla MCTS Game {i+1}/{NUM_BENCHMARK_GAMES}...")
         won, attempts, duration = play_game_mcts(env, MCTS_ITERATIONS, EXPLORATION_CONSTANT)
         vanilla_total_time += duration
         vanilla_game_times.append(duration)
@@ -416,7 +417,9 @@ if __name__ == "__main__":
     vanilla_avg_time = vanilla_total_time / NUM_BENCHMARK_GAMES if NUM_BENCHMARK_GAMES > 0 else 0
     vanilla_time_std = np.std(vanilla_game_times) if len(vanilla_game_times) > 1 else 0
     vanilla_attempts_std = np.std(vanilla_win_attempts) if len(vanilla_win_attempts) > 1 else 0
-
+    with open('successes.pkl', 'wb') as f:
+        pickle.dump(vanilla_win_attempts, f)
+    
     print("\nVanilla MCTS (Possible Words):")
     print(f"  Win Rate: {vanilla_win_rate:.2f}% ({vanilla_wins}/{NUM_BENCHMARK_GAMES})")
     if vanilla_wins > 0:
@@ -424,6 +427,8 @@ if __name__ == "__main__":
     else:
         print("  Avg. Attempts on Win: N/A (0 wins)")
     print(f"  Avg. Time per Game: {vanilla_avg_time:.3f}s (StdDev: {vanilla_time_std:.3f}s)")
-
+    plt.bar([x+1 for x in range(6)], vanilla_win_attempts)
+    plt.savefig('mcts_successs_plot.png')
+    plt.close()
     env.close()
     print("\n--- Benchmark Complete")

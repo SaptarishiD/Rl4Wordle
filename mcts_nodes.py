@@ -112,7 +112,7 @@ class MCTSNodeVanilla(MCTSNodeBase):
         elif best_actions:
             return random.choice(best_actions)
         else:
-            print(f"Warning: No valid action selected by UCT at attempt {self.attempt}. State: {self.state}")
+            # print(f"Warning: No valid action selected by UCT at attempt {self.attempt}. State: {self.state}")
             if current_valid_indices:
                 return random.choice(list(current_valid_indices))
             else:
@@ -161,7 +161,7 @@ class MCTSNodeAlphaZero(MCTSNodeBase):
 
         for i, tensor in enumerate(self.feature_tensor_history):
             if i >= self.max_attempts: # Should not happen if logic is correct
-                print(f"Warning: History length {history_len} exceeds max_attempts {self.max_attempts}")
+                # print(f"Warning: History length {history_len} exceeds max_attempts {self.max_attempts}")
                 break
             start_idx = i * feature_size_per_step
             end_idx = start_idx + feature_size_per_step
@@ -185,7 +185,7 @@ class MCTSNodeAlphaZero(MCTSNodeBase):
         best_actions = [] # To handle ties
 
         if self.policy_probs_dict is None:
-            print("Warning: Selecting action in AZ MCTS node without network policy (not evaluated?). Using random.")
+            # print("Warning: Selecting action in AZ MCTS node without network policy (not evaluated?). Using random.")
             # Fallback: Choose randomly among possible actions
             if not self.possible_actions:
                 print("Error: No possible actions to select from.")
@@ -216,9 +216,9 @@ class MCTSNodeAlphaZero(MCTSNodeBase):
                 best_actions.append(action_idx)
 
         if not best_actions:
-            print(f"Warning: No best action found in AZ UCT for node attempt {self.attempt}. Possible actions: {len(self.possible_actions)}. Policy Dict: {self.policy_probs_dict is not None}. Choosing random.")
+            # print(f"Warning: No best action found in AZ UCT for node attempt {self.attempt}. Possible actions: {len(self.possible_actions)}. Policy Dict: {self.policy_probs_dict is not None}. Choosing random.")
             if not self.possible_actions:
-                print("Error: No possible actions exist.")
+                # print("Error: No possible actions exist.")
                 return -1 
             return random.choice(self.possible_actions)
 
